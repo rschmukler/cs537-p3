@@ -9,6 +9,9 @@
 #include <stdint.h>
 
 
+struct mem_node* consolidateBefore(struct mem_node *newNode);
+struct mem_node* consolidateAfter(struct mem_node *newNode);
+
 struct mem_node {
 	struct mem_node *next;
 	struct mem_node *prev;
@@ -130,7 +133,93 @@ void *Mem_Alloc(int size)
 
 int Mem_Free(void *ptr)
 {
+	if(ptr == NULL)
+		return 0;
 	
+	int *size = ptr - 8;
+
+	struct mem_node *beforeNode = freeHead;
+	struct mem_node *newNode = (struct mem_node*)size;
+
+	if(beforeNode == NULL)
+	{
+		//Freed chunk size of our entire init size
+		
+		newNode->size = *size + 8;
+		newNode->prev = NULL;
+		newNode->next = NULL;
+		freeHead = newNode;
+		return 0;
+	}else if((void*)beforeNode < (void*)size)
+	{
+		//Freed memory at beginning of list
+		newNode->size = *size + 8;
+		newNode->prev = NULL;
+		newNode->next = freeHead;
+		freeHead->prev = newNode;
+		freeHead = newNode;
+	}else {
+		while((void*)beforeNode->next < (void*)size && beforeNode->next != NULL)
+		{
+			beforeNode = beforeNode->next;
+		}
+
+		if (beforeNode == freeHead)
+		{
+			newNode->size = *size + 8;
+			newNode->prev = beforeNode;
+			newNode->next = beforeNode->next;
+			beforeNode->next = newNode;
+		}
+		else if(beforeNode->next == NULL)
+		{
+			newNode->size = *size + 8;
+			newNode->prev = beforeNode;
+			newNode->next = beforeNode->next;
+			beforeNode->next = newNode;
+		}
+		else if(beforeNode != freeHead)
+		{
+			newNode->size = *size + 8;
+			newNode->prev = beforeNode;
+			newNode->next = beforeNode->next;
+			beforeNode->next = newNode;
+			newNode->next->prev = newNode;
+		}
+	}
+
+	consolidateAfter(consolidateBefore(newNode));
+}
+
+struct mem_node* consolidateBefore(struct mem_node *newNode)
+{
+	struct mem_node *prevNode = newNode->prev;
+	if(prevNode != NULL)
+	{
+		if((prevNode + prevNode->size) == newNode)
+		{
+			prevNode->next = newNode->next;
+			prevNode->size += newNode->size;
+			prevNode->next->prev = prevNode;
+			return prevNode;
+		}
+	}
+	return newNode;
+}
+
+struct mem_node* consolidateAfter(struct mem_node *newNode)
+{
+	struct mem_node *nextNode = newNode->next;
+	if(nextNode != NULL)
+	{
+		if((newNode + newNode->size) == nextNode)
+		{
+			newNode->next = nextNode->next;
+			newNode->next->prev = newNode;
+			newNode->size += nextNode->size;
+		}
+	}
+	return newNode;
 }
 
 void Mem_Dump(){
