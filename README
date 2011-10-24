@@ -1,0 +1,25 @@
+Programmers: Nate Sullivan (sullivan) and Ryan Schmukler (schmukle)
+Project 3
+
+
+
+Memory Allocation--
+
+Made a linked list of free nodes to keep track of unallocated memory. 
+
+For initialization, we created one large node using mmap. 
+
+For subsequent memory allocation, we searched the linked list for the largest chunk of unallocated memory and allocated the requested amount from the beginning of that chunk, plus a header to keep track of the size. We then updated the list to reflect the allocation. 
+
+For memory freeing, we looked to the header for the size of the chunk to be freed. We created a node for that chunk and then coalesced with adjacent nodes as appropriate.
+
+
+xv6 Null Pointer--
+
+Changed exec to leave the zeroth page of memory zeroed out. Loaded program code at page one. 
+
+Changed syscall.c to throw an error for null pointers being requested from the kernel. 
+
+Changed vm.c to have copyuvm copy 1 page beyond the start of a process' page table so as to not have multiple pages of 0s.
+
+Changed Makefile to tell user programs to start execution at page one rather than page zero.
