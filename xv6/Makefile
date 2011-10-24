@@ -150,7 +150,7 @@ LDUSER += --omagic
 # where program execution should begin
 LDUSER += --entry=main
 # location in memory where the program will be loaded
-LDUSER += --section-start=.text=0x0
+LDUSER += --section-start=.text=0x1000
 
 
 OBJCOPY = $(TOOLPREFIX)objcopy
@@ -274,7 +274,7 @@ bootother: bootother.S
 
 initcode: initcode.S
 	$(CC) $(CFLAGS) -nostdinc -I. -c initcode.S
-	$(LD) $(LDFLAGS) --omagic --entry=start --section-start=.text=0x0 \
+	$(LD) $(LDFLAGS) --omagic --entry=start --section-start=.text=0x0000 \
 		--output=initcode.out initcode.o
 	$(OBJCOPY) -S -O binary initcode.out initcode
 

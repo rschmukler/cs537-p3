@@ -32,8 +32,11 @@ exec(char *path, char **argv)
     goto bad;
 
   // Load program into memory.
-  //Maybe load program into a different address instead of 0
   sz = 0;
+
+  //Load an empty page of 0s
+  if((sz = allocuvm(pgdir, sz, PGSIZE)) == 0)
+    goto bad;
 
   for(i=0, off=elf.phoff; i<elf.phnum; i++, off+=sizeof(ph)){
     if(readi(ip, (char*)&ph, off, sizeof(ph)) != sizeof(ph))
